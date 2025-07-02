@@ -1,13 +1,11 @@
-name: treenode
+name: assetsrfid
 description: "A new Flutter project."
 publish_to: 'none'
-
 
 version: 1.0.0+1
 
 environment:
   sdk: ^3.5.0
-
 
 dependencies:
   flutter:
@@ -15,102 +13,35 @@ dependencies:
 
 
   cupertino_icons: ^1.0.8
-  get: ^4.6.6
-  get_storage:
-  path_provider: ^2.1.0
+  flutter_bloc:
+  #shared_preferences: ^2.5.3
   http:
-  photo_view:
-  internet_connection_checker_plus: ^2.0.0
-  auto_size_text: ^3.0.0
-  lottie:
-  flutter_animate: ^4.5.2
+  go_router:
+  get_storage:
+  sizer:
+  google_fonts:
+  flutter_animate:
+  flutter_map:
+  latlong2:
+  fl_chart: ^0.69.0
+  flutter_staggered_animations:
+  flutter_localizations:
+    sdk: flutter
+  auto_size_text:
   intl:
-  flutter_html: ^3.0.0-beta.2
-  flutter_html_all:
-  searchfield: ^1.2.0
-  webview_flutter: ^4.10.0
-  flutter_windowmanager: ^0.2.0
-  platform_device_id_v2: ^1.0.4
-  qr_flutter: ^4.1.0
-  url_launcher: ^6.3.1
-  permission_handler: ^11.3.1
-  uni_links5: ^0.5.4
-  rename: ^3.0.2
-  flutter_html_table:
-  flutter_typeahead:
-  flutter_secure_storage:
-  mobile_scanner: ^3.5.7
-  # animate_do:
-
+  url_launcher:
+  dotted_border:
+  flutter_speed_dial:
+  dartz:
+  flutter_otp_text_field:
 dev_dependencies:
-  flutter_launcher_icons: 0.13.1
-
   flutter_test:
     sdk: flutter
 
-
-  flutter_lints: ^5.0.0
-
-flutter_icons:
-  android: true
-  ios: true
-  image_path: "assets/iconapp/ic_launcher.png"
+  flutter_lints: ^4.0.0
 
 flutter:
 
+  generate: true
+
   uses-material-design: true
-
-  assets:
-    - assets/hello/hello.png
-    - assets/png/r.png
-    - assets/png/insta.png
-    - assets/png/tel.png
-    - assets/png/net.png
-    - assets/png/email.png
-
-    - assets/animate/red.json
-
-  fonts:
-    - family: Vazir
-      fonts:
-        - asset: assets/fonts/vazir.ttf
-    - family: Sarbaz
-      fonts:
-        - asset: assets/fonts/sarbaz2.ttf
-    - family: BarlowCondensed
-      fonts:
-        - asset: assets/fonts/BarlowCondensed-Regular.ttf
-        - asset: assets/fonts/BarlowCondensed-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/BarlowCondensed-Black.ttf
-          weight: 900
-        - asset: assets/fonts/BarlowCondensed-Italic.ttf
-          style: italic
-        - asset: assets/fonts/BarlowCondensed-BoldItalic.ttf
-          weight: 700
-          style: italic
-        - asset: assets/fonts/BarlowCondensed-ExtraLight.ttf
-          weight: 200
-        - asset: assets/fonts/BarlowCondensed-ExtraLightItalic.ttf
-          weight: 200
-          style: italic
-        - asset: assets/fonts/BarlowCondensed-Light.ttf
-          weight: 300
-        - asset: assets/fonts/BarlowCondensed-LightItalic.ttf
-          weight: 300
-          style: italic
-        - asset: assets/fonts/BarlowCondensed-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/BarlowCondensed-MediumItalic.ttf
-          weight: 500
-          style: italic
-        - asset: assets/fonts/BarlowCondensed-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/BarlowCondensed-SemiBoldItalic.ttf
-          weight: 600
-          style: italic
-        - asset: assets/fonts/BarlowCondensed-Thin.ttf
-          weight: 100
-        - asset: assets/fonts/BarlowCondensed-ThinItalic.ttf
-          weight: 100
-          style: italic
