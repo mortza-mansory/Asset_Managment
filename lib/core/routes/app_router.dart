@@ -1,3 +1,4 @@
+import 'package:assetsrfid/feature/about/presentation/page/about_page.dart';
 import 'package:assetsrfid/feature/asset_managment/presentation/pages/asset_detail_edit_page.dart';
 import 'package:assetsrfid/feature/asset_managment/presentation/pages/asset_detail_page.dart';
 import 'package:assetsrfid/feature/asset_managment/presentation/pages/asset_history_page.dart';
@@ -7,6 +8,7 @@ import 'package:assetsrfid/feature/assets_loan_management/presentation/pages/cre
 import 'package:assetsrfid/feature/assets_loan_management/presentation/pages/receive_loan_page.dart';
 import 'package:assetsrfid/feature/assets_loan_management/presentation/pages/scan_page.dart';
 import 'package:assetsrfid/feature/auth/presentation/pages/forgot_password_page.dart';
+import 'package:assetsrfid/feature/goverment_management/presentation/page/company_settings_page.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/page/create_company_page.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/page/my_companies_page.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/page/onboarding_complete_page.dart';
@@ -15,6 +17,7 @@ import 'package:assetsrfid/feature/goverment_management/presentation/page/switch
 import 'package:assetsrfid/feature/goverment_management/presentation/page/update_company_page.dart';
 import 'package:assetsrfid/feature/home/presentation/pages/home_page.dart';
 import 'package:assetsrfid/feature/home/presentation/pages/main_page.dart';
+import 'package:assetsrfid/feature/profile/persantation/page/profile_page.dart';
 import 'package:assetsrfid/feature/reports/presentation/page/recent_activity_page.dart';
 import 'package:assetsrfid/feature/reports/presentation/page/reports_page.dart';
 import 'package:assetsrfid/feature/reports/presentation/page/workflow_page.dart';
@@ -184,6 +187,18 @@ class AppRouter {
           final company = state.extra as CompanyMembership;
           return UpdateCompanyPage(company: company);
         },
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: '/company-settings',
+        builder: (context, state) => const CompanySettingsPage(),
+      ),
+      GoRoute(
+        path: '/about-app',
+        builder: (context, state) => const AboutPage(),
       ),
     ],
   );

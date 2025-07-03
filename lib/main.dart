@@ -9,9 +9,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:get_storage/get_storage.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await GetStorage.init();
+  setupDependencies();
+
   runApp(const AssetManagerApp());
 }
 
@@ -23,10 +27,7 @@ class AssetManagerApp extends StatelessWidget {
     return Sizer(
       builder: (context, orientation, deviceType) {
         return MultiProvider(
-          providers: [
-            ...AppProviders.providers(),
-            BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()),
-          ],
+          providers: AppProviders.providers(),
           child: BlocBuilder<LocalizationBloc, LocalizationState>(
             builder: (context, localizationState) {
               return BlocBuilder<ThemeBloc, ThemeState>(
@@ -37,11 +38,9 @@ class AssetManagerApp extends StatelessWidget {
                     routerConfig: AppRouter.router,
                     theme: ThemeData.light(),
                     darkTheme: ThemeData.dark(),
-                    themeMode:
-                    themeState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+                    themeMode: themeState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
                     locale: localizationState.locale,
-                    localizationsDelegates:
-                    AppLocalizations.localizationsDelegates,
+                    localizationsDelegates: AppLocalizations.localizationsDelegates,
                     supportedLocales: AppLocalizations.supportedLocales,
                   );
                 },
