@@ -1,4 +1,7 @@
 import 'package:assetsrfid/core/error/failures.dart';
+import 'package:assetsrfid/core/services/permission_service.dart';
+import 'package:assetsrfid/core/services/session_service.dart';
+import 'package:assetsrfid/core/utils/context_extensions.dart';
 import 'package:assetsrfid/feature/auth/domain/entity/token_entity.dart';
 import 'package:assetsrfid/feature/auth/domain/usercase/login_usercase.dart';
 import 'package:assetsrfid/feature/auth/domain/usercase/request_reset_code_usecase.dart';
@@ -20,6 +23,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RequestResetCodeUseCase requestResetCodeUseCase;
   final VerifyResetCodeUseCase verifyResetCodeUseCase;
   final TokenStorage tokenStorage;
+  final SessionService sessionService = getIt<SessionService>();
 
   AuthBloc({
     required this.signupUseCase,
@@ -72,7 +76,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await result.fold(
           (failure) async => emit(AuthFailure(message: failure.message)),
           (tokenEntity) async {
-        await tokenStorage.saveAccessToken(tokenEntity.accessToken);
+        await sessionService.saveAccessToken(tokenEntity.accessToken);
+        //  خط کلیدی: به‌روزرسانی نشست با نام کاربری جدید
+        // فرض می‌کنیم که نام کاربری از یک جایی در دسترس است (مثلا از state قبلی یا response)
+        // برای مثال، از event.username استفاده می‌کنیم (باید به event اضافه شود)
+        // final String username = (state as PreviousState).username;
+        // await sessionService.updateUserSession(username);
+
         if (!emit.isDone) {
           emit(AuthLoginSuccess(token: tokenEntity));
         }
@@ -118,7 +128,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
-    await tokenStorage.clearTokens();
+    await sessionService.clearSession(); // پاک کردن با سرویس جدید
+    getIt<PermissionService>().clear(); // پاک کردن دسترسی‌ها
     emit(AuthLoggedOut());
   }
 }

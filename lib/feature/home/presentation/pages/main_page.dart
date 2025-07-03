@@ -21,14 +21,14 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
-  final double navBarHeight = 6.h > 50 ? 50 : 6.h; // Match CustomFloatingNavBar
+  final double navBarHeight = 6.h > 50 ? 50 : 6.h;
 
   final List<Widget> _pages = [
     const HomePage(),
     const RfidScanPage(),
     const AssetListPage(),
     const SearchPage(),
-    const UserProfilePage(canHide: true),
+    const ProfilePage(canHide: true),
   ];
 
   void _onItemTapped(int index) {
@@ -40,37 +40,34 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => NavBarBloc(),
-      child: Scaffold(
-        body: Stack(
-          children: [
-            IndexedStack(
-              index: _selectedIndex,
-              children: _pages,
-            ),
-            BlocBuilder<NavBarBloc, NavBarState>(
-              builder: (context, state) {
-                return AnimatedPositioned(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  bottom: state is NavBarVisible ? 0 : -0.96 * navBarHeight, // 4% visible
-                  left: 0,
-                  right: 0,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30.0),
-                    child: CustomFloatingNavBar(
-                      selectedIndex: _selectedIndex,
-                      onItemTapped: _onItemTapped,
-                      canHide: true,
-                      navBarHeight: navBarHeight,
-                    ),
+    return Scaffold(
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _selectedIndex,
+            children: _pages,
+          ),
+          BlocBuilder<NavBarBloc, NavBarState>(
+            builder: (context, state) {
+              return AnimatedPositioned(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                bottom: state is NavBarVisible ? 0 : -0.96 * navBarHeight,
+                left: 0,
+                right: 0,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30.0),
+                  child: CustomFloatingNavBar(
+                    selectedIndex: _selectedIndex,
+                    onItemTapped: _onItemTapped,
+                    canHide: true,
+                    navBarHeight: navBarHeight,
                   ),
-                );
-              },
-            ),
-          ],
-        ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

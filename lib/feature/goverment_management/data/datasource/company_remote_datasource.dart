@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:assetsrfid/core/constants/api_constatns.dart';
+import 'package:assetsrfid/feature/goverment_management/data/models/CompanyOverviewModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:assetsrfid/core/error/exceptions.dart';
 import 'package:assetsrfid/feature/auth/utils/token_storage.dart';
@@ -10,6 +11,8 @@ abstract class CompanyRemoteDataSource {
   Future<List<CompanyModel>> fetchCompanies();
   Future<void> deleteCompany(int companyId);
   Future<CompanyModel> updateCompany(int companyId, CompanyCreateModel updateModel);
+  Future<CompanyOverviewModel> getCompanyOverview(int companyId);
+
 }
 
 class CompanyRemoteDataSourceImpl implements CompanyRemoteDataSource {
@@ -79,6 +82,23 @@ class CompanyRemoteDataSourceImpl implements CompanyRemoteDataSource {
       return CompanyModel.fromJson(jsonDecode(response.body));
     } else {
       throw ServerException(message: jsonDecode(response.body)['detail']);
+    }
+  }
+
+  @override
+  Future<CompanyOverviewModel> getCompanyOverview(int companyId) async {
+    final token = await tokenStorage.getAccessToken();
+    if (token == null) throw ServerException(message: 'Not authenticated');
+
+    final response = await client.get(
+      Uri.parse('${ApiConstants.baseUrl}/companies/$companyId/overview'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      return CompanyOverviewModel.fromJson(json.decode(utf8.decode(response.bodyBytes)));
+    } else {
+      throw ServerException(message: 'Failed to load company overview: ${response.statusCode}');
     }
   }
 }

@@ -11,6 +11,7 @@ abstract class AuthRemoteDataSource {
   Future<TokenResponseModel> verifyLoginOtp(VerifyOtpRequestModel requestModel);
   Future<ResetCodeResponseModel> requestResetCode(String identifier);
   Future<void> verifyResetCode({required int userId, required String code, required String newPassword});
+  Future<bool> verifyToken(String token);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -78,6 +79,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     );
     if (response.statusCode != 200) {
       throw ServerException(message: jsonDecode(response.body)['detail']);
+    }
+  }
+  @override
+  Future<bool> verifyToken(String token) async {
+    final response = await client.post(
+      Uri.parse('${ApiConstants.baseUrl}/auth/verify-token'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['valid'] ?? false;
+    } else {
+      //(مثلا 401 )
+      return false;
     }
   }
 }

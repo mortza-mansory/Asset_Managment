@@ -11,5 +11,5 @@ abstract class AuthRepository {
   Future<Either<Failure, TokenEntity>> verifyLoginOtp({required int userId, required String otp, required String tempToken});
   Future<Either<Failure, ResetCodeEntity>> requestResetCode(String identifier);
   Future<Either<Failure, void>> verifyResetCode({required int userId, required String code, required String newPassword});
-
+  Future<Either<Failure, bool>> verifyToken(String token);
 }

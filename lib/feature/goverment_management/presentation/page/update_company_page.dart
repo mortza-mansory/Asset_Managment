@@ -1,7 +1,7 @@
 import 'package:assetsrfid/core/utils/context_extensions.dart';
-import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company_bloc.dart';
-import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company_event.dart';
-import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company_state.dart';
+import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company/company_bloc.dart';
+import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company/company_event.dart';
+import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company/company_state.dart';
 import 'package:assetsrfid/shared/widgets/custom_button.dart';
 import 'package:assetsrfid/shared/widgets/custom_text_field.dart';
 import 'package:assetsrfid/shared/widgets/onboarding_scaffold.dart';
@@ -62,7 +62,7 @@ class _UpdateCompanyPageState extends State<UpdateCompanyPage> {
       body: BlocListener<CompanyBloc, CompanyState>(
         listener: (context, state) {
           if (state is CompanyUpdated) {
-            context.go('/companies/switch');
+            context.go('/switch_company');
           } else if (state is CompanyFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),

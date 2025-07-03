@@ -1,3 +1,4 @@
+import 'package:assetsrfid/core/services/session_service.dart';
 import 'package:assetsrfid/core/utils/context_extensions.dart';
 import 'package:assetsrfid/feature/auth/presentation/bloc/auth_bloc.dart';
 import 'package:assetsrfid/feature/auth/presentation/bloc/auth_event.dart';
@@ -23,27 +24,22 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    _checkTokenAndNavigate();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkTokenAndNavigate();
+    });
   }
 
   Future<void> _checkTokenAndNavigate() async {
     if (!mounted) return;
 
-    final tokenStorage = context.read<TokenStorage>();
-    final accessToken = await tokenStorage.getAccessToken();
-
-    if (!mounted) return;
+    final sessionService = getIt<SessionService>();
+    final accessToken = sessionService.getAccessToken();
 
     if (accessToken != null) {
       context.read<AuthBloc>().add(VerifyTokenEvent(accessToken));
     } else {
       await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        setState(() {
-          _initialCheckDone = true;
-        });
-        context.go('/modal_start');
-      }
+      if (mounted) context.go('/modal_start');
     }
   }
 
@@ -62,7 +58,18 @@ class _SplashPageState extends State<SplashPage> {
         listener: (context, state) {
           if (!mounted) return;
           if (state is TokenVerified) {
-            context.go(state.isValid ? '/role_selection' : '/modal_start');
+            if (state.isValid) {
+              final sessionService = getIt<SessionService>();
+              final activeCompany = sessionService.getActiveCompany();
+
+              if (activeCompany != null) {
+                context.go('/home');
+              } else {
+                context.go('/switch_company');
+              }
+            } else {
+              context.go('/modal_start');
+            }
           }
         },
         child: Center(

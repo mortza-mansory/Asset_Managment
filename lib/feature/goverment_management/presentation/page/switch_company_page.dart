@@ -1,3 +1,5 @@
+import 'package:assetsrfid/core/services/permission_service.dart';
+import 'package:assetsrfid/core/services/session_service.dart';
 import 'package:assetsrfid/core/utils/context_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -6,15 +8,16 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
 import 'package:assetsrfid/feature/theme/bloc/theme_bloc.dart';
-import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company_bloc.dart';
-import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company_event.dart';
-import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company_state.dart';
+import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company/company_bloc.dart';
+import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company/company_event.dart';
+import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company/company_state.dart';
 import 'package:assetsrfid/feature/goverment_management/data/models/company_model.dart';
 
 class CompanyMembership {
   final String id;
   final String companyName;
   final String userRole;
+  final String rawRole;
   final IconData icon;
   final String? address;
   final String? industry;
@@ -23,11 +26,13 @@ class CompanyMembership {
     required this.id,
     required this.companyName,
     required this.userRole,
+    required this.rawRole,
     required this.icon,
     this.address,
     this.industry,
   });
 }
+
 
 class SwitchCompanyPage extends StatefulWidget {
   const SwitchCompanyPage({super.key});
@@ -42,26 +47,30 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
   @override
   void initState() {
     super.initState();
-    print('SwitchCompanyPage initState called');
+    _activeCompanyId = getIt<SessionService>().getActiveCompany()?.id.toString() ?? '';
     _fetchCompanies();
   }
 
   void _fetchCompanies() {
-    print('Fetching companies...');
     context.read<CompanyBloc>().add(FetchCompanies());
   }
 
-  void _switchCompany(String companyId, String companyName) {
-    setState(() {
-      _activeCompanyId = companyId;
-    });
+  void _switchCompany(String companyId, String companyName, String role) async {
+    final sessionService = getIt<SessionService>();
+    final permissionService = getIt<PermissionService>();
+
+    final activeCompany = ActiveCompany(id: int.parse(companyId), name: companyName, role: role);
+    await sessionService.saveActiveCompany(activeCompany);
+
+    permissionService.updateRulesForRole(role);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(context.l10n.switchToCompanySnackbar(companyName)),
         backgroundColor: Colors.green,
       ),
     );
-    context.go('/dashboard');
+    context.go('/splash');
   }
 
   @override
@@ -75,8 +84,8 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
       backgroundColor: scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(l10n.switchCompanyPageTitle, style: GoogleFonts.poppins()),
-        backgroundColor: isDarkMode ? const Color(0xFF2A2B2F) : Colors.white,
-        foregroundColor: primaryTextColor,
+        backgroundColor: scaffoldBackgroundColor,
+     //   foregroundColor: primaryTextColor,
         elevation: 1,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
@@ -98,8 +107,16 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
       ),
       body: BlocListener<CompanyBloc, CompanyState>(
         listener: (context, state) {
-          print('CompanyBloc state: $state');
-          if (state is CompanyDeleted) {
+          if (state is CompanySwitchSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.switchToCompanySnackbar(state.companyName)),
+                backgroundColor: Colors.green,
+              ),
+            );
+            context.go('/splash');
+          }
+          else if (state is CompanyDeleted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(l10n.companyDeletedSnackbar),
@@ -126,7 +143,6 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
         },
         child: BlocBuilder<CompanyBloc, CompanyState>(
           builder: (context, state) {
-            print('BlocBuilder state: $state');
             if (state is CompanyLoading) {
               return const Center(child: CircularProgressIndicator());
             } else if (state is CompaniesLoaded) {
@@ -137,6 +153,7 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
                 icon: _getIconForRole(company.role),
                 address: company.address,
                 industry: company.industry,
+                rawRole: company.role,
               )).toList();
 
               if (memberships.isEmpty) {
@@ -177,10 +194,17 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
                 itemBuilder: (context, index) {
                   final membership = memberships[index];
                   final bool isActive = _activeCompanyId == membership.id;
+
                   return _CompanyMembershipCard(
                     membership: membership,
                     isActive: isActive,
-                    onTap: () => _switchCompany(membership.id, membership.companyName),
+                    onTap: () => context.read<CompanyBloc>().add(
+                      SwitchCompany(
+                        companyId: membership.id,
+                        companyName: membership.companyName,
+                        rawRole: membership.rawRole,
+                      ),
+                    ),
                     onDelete: () {
                       context.read<CompanyBloc>().add(DeleteCompany(companyId: int.parse(membership.id)));
                     },
@@ -280,8 +304,6 @@ class _CompanyMembershipCard extends StatelessWidget {
     final secondaryTextColor = isDarkMode ? Colors.white.withOpacity(0.6) : Colors.grey.shade600;
     final activeColor = Colors.teal.shade400;
 
-    print('Rendering _CompanyMembershipCard for ${membership.companyName}');
-
     return Dismissible(
       key: Key(membership.id),
       direction: DismissDirection.horizontal,
@@ -372,7 +394,6 @@ class _CompanyMembershipCard extends StatelessWidget {
                   onPressed: isActive
                       ? null
                       : () {
-                    print('Switch button pressed for ${membership.companyName}');
                     onTap();
                   },
                   style: ElevatedButton.styleFrom(
@@ -396,7 +417,6 @@ class _CompanyMembershipCard extends StatelessWidget {
                   constraints: BoxConstraints(maxWidth: 25.w, minWidth: 20.w),
                   child: ElevatedButton(
                     onPressed: () {
-                      print('Edit button pressed for ${membership.companyName}');
                       onEdit();
                     },
                     style: ElevatedButton.styleFrom(

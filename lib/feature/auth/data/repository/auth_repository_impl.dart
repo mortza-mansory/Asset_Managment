@@ -74,4 +74,13 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure(message: e.message));
     }
   }
+  @override
+  Future<Either<Failure, bool>> verifyToken(String token) async {
+    try {
+      final isValid = await remoteDataSource.verifyToken(token);
+      return Right(isValid);
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }
