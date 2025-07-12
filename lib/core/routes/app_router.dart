@@ -1,8 +1,12 @@
+// lib/core/router/app_router.dart
 import 'package:assetsrfid/feature/about/presentation/page/about_page.dart';
+import 'package:assetsrfid/feature/asset_managment/domain/entities/asset_entity.dart';
+import 'package:assetsrfid/feature/asset_managment/presentation/pages/asset_detail_edit_location_page.dart';
 import 'package:assetsrfid/feature/asset_managment/presentation/pages/asset_detail_edit_page.dart';
 import 'package:assetsrfid/feature/asset_managment/presentation/pages/asset_detail_page.dart';
 import 'package:assetsrfid/feature/asset_managment/presentation/pages/asset_history_page.dart';
-import 'package:assetsrfid/feature/asset_managment/presentation/pages/asset_list_page.dart';
+import 'package:assetsrfid/feature/assets_explore/presentation/page/asset_explore_page.dart';
+import 'package:assetsrfid/feature/assets_explore/presentation/page/search_page.dart';
 import 'package:assetsrfid/feature/assets_loan_management/presentation/pages/asset_loan_dashboard_page.dart';
 import 'package:assetsrfid/feature/assets_loan_management/presentation/pages/create_loan_page.dart';
 import 'package:assetsrfid/feature/assets_loan_management/presentation/pages/receive_loan_page.dart';
@@ -10,7 +14,9 @@ import 'package:assetsrfid/feature/assets_loan_management/presentation/pages/sca
 import 'package:assetsrfid/feature/auth/presentation/pages/forgot_password_page.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/page/company_settings_page.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/page/create_company_page.dart';
+import 'package:assetsrfid/feature/goverment_management/presentation/page/invite_member_page.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/page/my_companies_page.dart';
+import 'package:assetsrfid/feature/goverment_management/presentation/page/my_invitations_page.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/page/onboarding_complete_page.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/page/role_selection_page.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/page/switch_company_page.dart';
@@ -22,7 +28,7 @@ import 'package:assetsrfid/feature/reports/presentation/page/recent_activity_pag
 import 'package:assetsrfid/feature/reports/presentation/page/reports_page.dart';
 import 'package:assetsrfid/feature/reports/presentation/page/workflow_page.dart';
 import 'package:assetsrfid/feature/rfid/presentation/pages/rfid_validation_page.dart';
-import 'package:assetsrfid/feature/search/presentation/page/search_page.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:assetsrfid/feature/auth/presentation/pages/login_page.dart';
 import 'package:assetsrfid/feature/auth/presentation/pages/modal_page.dart';
@@ -31,6 +37,10 @@ import 'package:assetsrfid/feature/auth/presentation/pages/sign_up_page.dart';
 import 'package:assetsrfid/feature/auth/presentation/pages/splash_page.dart';
 import 'package:assetsrfid/feature/subscription/presentation/pages/buy_subscription_page.dart';
 import 'package:assetsrfid/feature/subscription/presentation/pages/check_subscription_page.dart';
+import 'package:assetsrfid/feature/assets_explore/presentation/page/helper_pages/asset_category_management_page.dart';
+
+import '../../feature/asset_managment/presentation/pages/bulk_upload_guidance_page.dart';
+import '../../feature/asset_managment/presentation/pages/bulk_upload_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -50,8 +60,6 @@ class AppRouter {
           final tempToken = state.pathParameters['tempToken'] ?? '';
           final extra = state.extra as Map<String, dynamic>? ?? {};
           final userId = extra['userId'] as int? ?? 0;
-          final isForLogin = extra['isForLogin'] as bool? ?? false;
-
           return OtpPage(
             tempToken: tempToken,
             userId: userId,
@@ -88,20 +96,29 @@ class AppRouter {
       ),
       GoRoute(
         path: '/assets_list',
-        builder: (context, state) => const AssetListPage(),
+        builder: (context, state) => const AssetExplorePage(),
       ),
       GoRoute(
-        path: '/assets_detail',
-        builder: (context, state) => const AssetDetailPage(),
+        path: '/asset_detail/:rfidTag',
+        builder: (context, state) {
+          final rfidTag = state.pathParameters['rfidTag'] ?? '';
+          return AssetDetailPage(rfidTag: rfidTag);
+        },
       ),
-      GoRoute(
-        path: '/asset_detail_edit',
-        builder: (context, state) => const AssetDetailEditPage(),
-      ),
-      GoRoute(
-        path: '/asset_history',
-        builder: (context, state) => const AssetHistoryPage(),
-      ),
+      // GoRoute(
+      //   path: '/asset_detail_edit',
+      //   builder: (context, state) {
+      //     final asset = state.extra as AssetEntity?;
+      //     return AssetDetailEditPage(asset: asset);
+      //   },
+      // ),
+      // GoRoute(
+      //   path: '/asset_history',
+      //   builder: (context, state) {
+      //     final assetId = state.extra as int?;
+      //     return AssetHistoryPage(assetId: assetId);
+      //   },
+      // ),
       GoRoute(
         path: '/forgot_password',
         builder: (context, state) => const ForgotPasswordPage(),
@@ -109,10 +126,8 @@ class AppRouter {
       GoRoute(
         path: '/rfid_validation/:state',
         builder: (context, state) {
-          //   int validationState = int.tryParse(state.pathParameters['state'] ?? '2') ?? 1;
-          return RfidValidationPage(
-            state: 1,
-          );
+          final validationState = int.tryParse(state.pathParameters['state'] ?? '1') ?? 1;
+          return RfidValidationPage(state: validationState);
         },
       ),
       GoRoute(
@@ -124,39 +139,28 @@ class AppRouter {
         name: 'check_subscription',
         builder: (context, state) {
           final params = state.uri.queryParameters;
-          print('Navigated to /check_subscription with params: $params');
           return CheckSubscriptionPage(
-            purchaseUrl: params['url']!,
-            subscriptionId: int.parse(params['id']!),
+            purchaseUrl: params['url'] ?? '',
+            subscriptionId: int.tryParse(params['id'] ?? '0') ?? 0,
           );
         },
       ),
-      // GoRoute(
-      //   path: '/check_subscription',
-      //   name: 'check_subscription',
-      //   builder: (context, state) {
-      //     final url = state.uri.queryParameters['url'] ?? '';
-      //     final subIdString = state.uri.queryParameters['id'] ?? '0';
-      //     final subId = int.tryParse(subIdString) ?? 0;
-      //
-      //     return CheckSubscriptionPage(
-      //       purchaseUrl: url,
-      //       subscriptionId: subId,
-      //     );
-      //   },
-      // ),
       GoRoute(
-          path: '/role_selection',
-          builder: (context, state) => const RoleSelectionPage()),
+        path: '/role_selection',
+        builder: (context, state) => const RoleSelectionPage(),
+      ),
       GoRoute(
-          path: '/my_companies',
-          builder: (context, state) => const MyCompaniesPage()),
+        path: '/my_invities',
+        builder: (context, state) => const MyInvitationsPage(),
+      ),
       GoRoute(
-          path: '/create_company',
-          builder: (context, state) => const CreateCompanyPage()),
+        path: '/create_company',
+        builder: (context, state) => const CreateCompanyPage(),
+      ),
       GoRoute(
-          path: '/onboarding_complete',
-          builder: (context, state) => const OnboardingCompletePage()),
+        path: '/onboarding_complete',
+        builder: (context, state) => const OnboardingCompletePage(),
+      ),
       GoRoute(
         path: '/switch_company',
         builder: (context, state) => const SwitchCompanyPage(),
@@ -195,10 +199,66 @@ class AppRouter {
       GoRoute(
         path: '/company-settings',
         builder: (context, state) => const CompanySettingsPage(),
+        routes: [
+          GoRoute(
+            path: 'invite',
+            builder: (context, state) => const InviteMemberPage(),
+          ),
+          GoRoute(
+            path: 'myinvite',
+            builder: (context, state) => const MyInvitationsPage(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/about-app',
         builder: (context, state) => const AboutPage(),
+      ),
+      GoRoute(
+        path: '/asset_category_management',
+        builder: (context, state) => const AssetCategoryManagementPage(),
+      ),
+      GoRoute(
+        path: '/asset_detail_edit',
+        builder: (context, state) {
+          final asset = state.extra as AssetEntity?;
+          if (asset == null) {
+            return const Text('Error: Asset not provided for editing.');
+          }
+          return AssetDetailEditPage(asset: asset);
+        },
+      ),
+      GoRoute(
+        path: '/asset_history',
+        builder: (context, state) {
+          final assetId = state.extra as int?;
+          if (assetId == null) {
+            return const Text('Error: Asset ID not provided for history.');
+          }
+          return AssetHistoryPage(assetId: assetId);
+        },
+      ),
+      GoRoute(
+        path: '/asset_detail_edit_location',
+        builder: (context, state) {
+          final asset = state.extra as AssetEntity?;
+          if (asset == null) {
+            return const Text('Error: Asset not provided for location editing.');
+          }
+          return AssetDetailEditLocationPage(asset: asset);
+        },
+      ),
+      GoRoute(
+        path: '/bulk_upload_guidance',
+        builder: (BuildContext context, GoRouterState state) {
+          return const BulkUploadGuidancePage();
+        },
+      ),
+      GoRoute(
+        path: '/bulk_upload',
+        builder: (BuildContext context, GoRouterState state) {
+          return const BulkUploadPage();
+        },
       ),
     ],
   );

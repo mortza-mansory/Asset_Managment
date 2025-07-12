@@ -11,8 +11,41 @@ extension AppLocalizationsX on BuildContext {
 }
 
 extension AuthContext on BuildContext {
-
   bool can(String permissionKey) {
     return getIt<PermissionService>().can(permissionKey);
+  }
+}
+
+extension SnackbarExtensions on BuildContext {
+  void showSnackBar(String message, {Color? backgroundColor, Color? textColor}) {
+    ScaffoldMessenger.of(this).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(color: textColor ?? Colors.white),
+        ),
+        backgroundColor: backgroundColor ?? Theme.of(this).snackBarTheme.backgroundColor,
+        behavior: SnackBarBehavior.floating, // ظاهر شناور
+        // duration: const Duration(seconds: 3), // مدت نمایش
+      ),
+    );
+  }
+
+  void showErrorDialog(String message) {
+    showDialog(
+      context: this,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

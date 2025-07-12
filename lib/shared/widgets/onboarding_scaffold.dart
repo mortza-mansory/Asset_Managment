@@ -1,3 +1,5 @@
+// lib/shared/widgets/onboarding_scaffold.dart
+
 import 'package:assetsrfid/core/utils/context_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +10,7 @@ class OnboardingScaffold extends StatelessWidget {
   final int totalSteps;
   final Widget body;
   final VoidCallback? onBack;
+  final String? title; // Added optional title field
 
   const OnboardingScaffold({
     super.key,
@@ -15,6 +18,7 @@ class OnboardingScaffold extends StatelessWidget {
     required this.totalSteps,
     required this.body,
     this.onBack,
+    this.title, // Added to constructor
   });
 
   @override
@@ -36,7 +40,7 @@ class OnboardingScaffold extends StatelessWidget {
         )
             : null,
         title: Text(
-          l10n.onboardingProgress,
+          title ?? l10n.onboardingProgress, // Use provided title or default
           style: GoogleFonts.poppins(fontSize: 14.sp, color: primaryTextColor, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
@@ -45,7 +49,7 @@ class OnboardingScaffold extends StatelessWidget {
           child: LinearProgressIndicator(
             value: currentStep / totalSteps,
             backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.teal.shade400),
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey), // Use secondary color from theme
           ),
         ),
       ),

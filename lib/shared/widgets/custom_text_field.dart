@@ -19,6 +19,9 @@ class NewCustomTextField extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final Iterable<String>? autofillHints;
   final Duration animationDelay;
+  final bool? readOnly;
+  final VoidCallback? onTap;
+  final bool? enabled;
 
   const NewCustomTextField({
     super.key,
@@ -38,6 +41,9 @@ class NewCustomTextField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.none,
     this.autofillHints,
     this.animationDelay = Duration.zero,
+    this.readOnly,
+    this.onTap,
+    this.enabled,
   });
 
   @override
@@ -46,7 +52,7 @@ class NewCustomTextField extends StatelessWidget {
 
     final fillColor = isDarkMode ? Colors.black.withOpacity(0.18) : Colors.grey.shade100.withOpacity(0.8);
     final borderColor = isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300;
-    final focusedBorderColor =  isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200;
+    final focusedBorderColor = isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200;
     final iconColor = isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600;
     final textColor = isDarkMode ? Colors.white.withOpacity(0.85) : Colors.black.withOpacity(0.87);
     final labelColor = isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600;
@@ -63,6 +69,9 @@ class NewCustomTextField extends StatelessWidget {
       onChanged: onChanged,
       textCapitalization: textCapitalization,
       autofillHints: autofillHints,
+      readOnly: readOnly ?? false,
+      onTap: onTap,
+      enabled: enabled ?? true,
       style: GoogleFonts.poppins(fontSize: 12.5.sp, color: textColor, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: labelText,

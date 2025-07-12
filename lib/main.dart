@@ -7,15 +7,14 @@ import 'package:assetsrfid/feature/theme/bloc/theme_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
-import 'package:get_storage/get_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
   setupDependencies();
-
   runApp(const AssetManagerApp());
 }
 
@@ -26,6 +25,7 @@ class AssetManagerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, deviceType) {
+        // ✨ Use MultiProvider to provide all BLoCs globally.
         return MultiProvider(
           providers: AppProviders.providers(),
           child: BlocBuilder<LocalizationBloc, LocalizationState>(
@@ -36,8 +36,8 @@ class AssetManagerApp extends StatelessWidget {
                     title: 'AssetManagerRfid',
                     debugShowCheckedModeBanner: false,
                     routerConfig: AppRouter.router,
-                    theme: ThemeData.light(),
-                    darkTheme: ThemeData.dark(),
+                    theme: ThemeData.light(), // Your light theme
+                    darkTheme: ThemeData.dark(),   // Your dark theme
                     themeMode: themeState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
                     locale: localizationState.locale,
                     localizationsDelegates: AppLocalizations.localizationsDelegates,

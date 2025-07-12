@@ -58,9 +58,9 @@ class CustomFloatingNavBar extends StatelessWidget {
           label: l10n.navAssetList,
           tooltip: l10n.navScanTooltip),
       NavItem(
-          icon: Icons.search,
-          label: l10n.navSearch,
-          tooltip: l10n.navSearchTooltip),
+          icon: Icons.receipt_long,
+          label: l10n.loan,
+          tooltip: l10n.loan),
       NavItem(
           icon: Icons.person,
           label: l10n.navProfile,
