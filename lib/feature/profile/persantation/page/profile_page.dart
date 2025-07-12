@@ -86,7 +86,7 @@ class _ProfilePageState extends State<ProfilePage> {
     switch (rawRole) {
       case 'A1': return l10n.roleOwner;
       case 'A2': return l10n.roleAdmin;
-      case 'Operator': return l10n.roleOperator;
+      case 'O': return l10n.roleOperator; // Changed from 'Operator' to 'O' to match backend Enum
       default: return rawRole;
     }
   }
@@ -125,13 +125,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
           _buildInfoSection(
               context: context, title: l10n.profileAccountSettingsTitle, icon: Icons.manage_accounts_outlined,
-              onEdit: () { /* TODO: Navigate to user profile edit page */ },
+            //  onEdit: () { /* TODO: Navigate to user profile edit page */ },
               items: [
                 if (state.userData.email != null)
                   _InfoRowData(icon: Icons.email_outlined, label: l10n.profileContactInfoEmailLabel, value: state.userData.email!),
-                if (state.userData.phoneNumber != null)
-                  _InfoRowData(icon: Icons.phone_iphone_outlined, label: l10n.profileContactInfoPhoneLabel, value: state.userData.phoneNumber!),
-                _InfoRowData(icon: Icons.password_outlined, label: l10n.profileAccountSettingsChangePassword, value: "", isAction: true, onTap: () {}),
+                if (state.userData.phoneNum != null) // Changed from phoneNumber
+                  _InfoRowData(icon: Icons.phone_iphone_outlined, label: l10n.profileContactInfoPhoneLabel, value: state.userData.phoneNum!), // Changed from phoneNumber
+                _InfoRowData(icon: Icons.password_outlined, label: l10n.profileAccountSettingsChangePassword, value: "", isAction: true, onTap: () {context.go("/forgot_password");}),
               ],
               cardBackgroundColor: cardBackgroundColor, primaryTextColor: primaryTextColor, secondaryTextColor: secondaryTextColor,
               iconColor: iconColor, sectionTitleColor: sectionTitleColor, isDarkMode: isDarkMode, animationDelay: 300.ms
@@ -162,9 +162,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final headerTextColor = isDarkMode ? Colors.white : Colors.black45;
     final dropDownBackgroundColor = isDarkMode ? const Color(0xFF37474F) : const Color(0xFFFFFFFF);
 
-    String getInitials(String fullName) {
-      if (fullName.isEmpty) return "U";
-      List<String> names = fullName.split(" ");
+    String getInitials(String username) { // Changed from fullName
+      if (username.isEmpty) return "U";
+      List<String> names = username.split(" ");
       String initials = names.isNotEmpty && names[0].isNotEmpty ? names[0][0] : "";
       if (names.length > 1 && names.last.isNotEmpty) {
         initials += names.last[0];
@@ -197,12 +197,12 @@ class _ProfilePageState extends State<ProfilePage> {
             radius: 12.w,
             backgroundColor: isDarkMode ? accentColor.withOpacity(0.8) : Theme.of(context).primaryColor.withOpacity(0.6),
             child: Text(
-                getInitials(userData.fullName),
+                getInitials(userData.username), // Changed from fullName
                 style: GoogleFonts.poppins(fontSize: 18.sp, color: isDarkMode ? Colors.black87 : Colors.white, fontWeight: FontWeight.w600)
             ),
           ).animate().scale(delay: 100.ms, duration: 400.ms, curve: Curves.elasticOut),
           SizedBox(height: 1.5.h),
-          Text(userData.fullName, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 16.sp, fontWeight: FontWeight.bold, color: nameColor)).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2),
+          Text(userData.username, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 16.sp, fontWeight: FontWeight.bold, color: nameColor)).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2), // Changed from fullName
           SizedBox(height: 0.5.h),
           Text(_translateRole(activeCompany.role, context.l10n), textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12.sp, color: roleColor, fontWeight: FontWeight.w500)).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3),
           SizedBox(height: 1.h),

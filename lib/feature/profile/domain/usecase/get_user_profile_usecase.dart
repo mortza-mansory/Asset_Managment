@@ -1,7 +1,7 @@
-import 'package:dartz/dartz.dart';
 import 'package:assetsrfid/core/error/failures.dart';
 import 'package:assetsrfid/feature/profile/domain/entity/user_profile_entity.dart';
 import 'package:assetsrfid/feature/profile/domain/repository/profile_repository.dart';
+import 'package:dartz/dartz.dart';
 
 class GetUserProfileUseCase {
   final ProfileRepository repository;
