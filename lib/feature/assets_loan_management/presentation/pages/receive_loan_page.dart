@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sizer/sizer.dart';
+import 'package:assetsrfid/core/services/session_service.dart';
+import 'package:get_it/get_it.dart';
+//import 'package:qr_flutter/qr_flutter.dart'; // این پکیج باید در pubspec.yaml اضافه شود
 
 class ReceiveLoanPage extends StatelessWidget {
   const ReceiveLoanPage({super.key});
@@ -15,8 +17,13 @@ class ReceiveLoanPage extends StatelessWidget {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final primaryTextColor = isDarkMode ? Colors.white.withOpacity(0.9) : Colors.black87;
     final secondaryTextColor = isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600;
-    final qrData = 'user_id:12345';
     final scaffoldBackgroundColor = isDarkMode ? const Color(0xFF1A1B1E) : const Color(0xFFF8F9FA);
+
+    final sessionService = GetIt.instance<SessionService>();
+    final currentUserId = sessionService.getUserId();
+    final qrData = currentUserId != null ? 'user_id:$currentUserId' : 'NO_USER_ID_AVAILABLE';
+
+
     return Scaffold(
       backgroundColor: scaffoldBackgroundColor,
       appBar: AppBar(
@@ -46,15 +53,26 @@ class ReceiveLoanPage extends StatelessWidget {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child:Container(
-                  width: 60.w,
-                  height: 60.w,
-                  color: Colors.black26,
-                )
-                // QrImageView(
+             //   child:
+
+                // currentUserId != null
+                //     ? QrImageView( // استفاده از QrImageView واقعی
                 //   data: qrData,
                 //   version: QrVersions.auto,
                 //   size: 60.w,
+                //   errorStateBuilder: (cxt, err) {
+                //     return Center(
+                //       child: Text(
+                //         l10n.qrCodeError(err.toString()),
+                //         textAlign: TextAlign.center,
+                //       ),
+                //     );
+                //   },
+                // )
+                //     : SizedBox(
+                //   width: 60.w,
+                //   height: 60.w,
+                //   child: Center(child: Text(l10n.noUserIdForQr, textAlign: TextAlign.center, style: TextStyle(color: Colors.red))),
                 // ),
               ),
             ),

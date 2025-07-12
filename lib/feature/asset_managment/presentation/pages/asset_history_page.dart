@@ -7,100 +7,80 @@ import 'package:sizer/sizer.dart';
 import 'package:assetsrfid/feature/theme/bloc/theme_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-enum HistoryEventType { scan, custodianChange, maintenance, statusChange }
+import 'package:assetsrfid/feature/asset_managment/presentation/bloc/asset_history/asset_history_bloc.dart';
+import 'package:assetsrfid/feature/asset_managment/presentation/bloc/asset_history/asset_history_event.dart';
+import 'package:assetsrfid/feature/asset_managment/presentation/bloc/asset_history/asset_history_state.dart';
 
-class HistoryEvent {
-  final String title;
-  final String? subtitle;
-  final DateTime timestamp;
-  final IconData icon;
-  final Color color;
-  final HistoryEventType type;
+import 'package:assetsrfid/feature/asset_managment/domain/entities/asset_entity.dart';
+import 'package:assetsrfid/feature/asset_managment/domain/entities/asset_history_entity.dart';
+import 'package:assetsrfid/feature/asset_managment/data/models/asset_status_model.dart'; // برای AssetEventType و AssetStatus
 
-  HistoryEvent({
-    required this.title,
-    this.subtitle,
-    required this.timestamp,
-    required this.icon,
-    required this.color,
-    required this.type,
-  });
-}
 
 class AssetHistoryPage extends StatefulWidget {
-  const AssetHistoryPage({super.key});
+  final int assetId;
+
+  const AssetHistoryPage({super.key, required this.assetId}); // assetId را در constructor اجباری می‌کنیم
 
   @override
   State<AssetHistoryPage> createState() => _AssetHistoryPageState();
 }
 
 class _AssetHistoryPageState extends State<AssetHistoryPage> {
-  late List<HistoryEvent> _allEvents;
-  late List<HistoryEvent> _filteredEvents;
-  HistoryEventType? _selectedFilter;
+
+
 
   @override
   void initState() {
     super.initState();
-    _filteredEvents = [];
+    context.read<AssetHistoryBloc>().add(LoadAssetHistoryEvent(assetId: widget.assetId));
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _initializeEvents();
+
+
+  void _filterEvents(AssetEventType? filter) {
+    context.read<AssetHistoryBloc>().add(FilterAssetHistory(filterType: filter));
   }
 
-  void _initializeEvents() {
-    final l10n = context.l10n;
-    _allEvents = [
-      HistoryEvent(
-          title: '${l10n.historyEventScan} انبار مرکزی',
-          timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-          icon: Icons.qr_code_scanner_rounded,
-          color: Colors.blue.shade400,
-          type: HistoryEventType.scan),
-      HistoryEvent(
-          title: '${l10n.historyEventCustodianChange} آقای اکبری',
-          timestamp: DateTime.now().subtract(const Duration(days: 1)),
-          icon: Icons.person_outline,
-          color: Colors.purple.shade400,
-          type: HistoryEventType.custodianChange),
-      HistoryEvent(
-          title:
-          '${l10n.historyEventStatusChange} "${l10n.assetStatusActive}"',
-          timestamp: DateTime.now().subtract(const Duration(days: 1)),
-          icon: Icons.check_circle_outline,
-          color: Colors.green.shade400,
-          type: HistoryEventType.statusChange),
-      HistoryEvent(
-          title: l10n.historyEventMaintenanceStart,
-          subtitle: 'مشکل: صفحه نمایش',
-          timestamp: DateTime.now().subtract(const Duration(days: 15)),
-          icon: Icons.build_outlined,
-          color: Colors.orange.shade600,
-          type: HistoryEventType.maintenance),
-      HistoryEvent(
-          title: '${l10n.historyEventScan} دفتر فنی',
-          timestamp: DateTime.now().subtract(const Duration(days: 16)),
-          icon: Icons.qr_code_scanner_rounded,
-          color: Colors.blue.shade400,
-          type: HistoryEventType.scan),
-    ];
-    _filteredEvents = List.from(_allEvents);
+  String _localizedEventType(String eventType, AppLocalizations l10n) {
+    switch(eventType.toLowerCase()) {
+      case 'scanned': return l10n.assetEventTypeScanned;
+      case 'moved': return l10n.assetEventTypeMoved;
+      case 'assigned': return l10n.assetEventTypeAssigned;
+      case 'registered': return l10n.assetEventTypeRegistered;
+      case 'loaned': return l10n.assetEventTypeLoaned;
+      case 'returned': return l10n.assetEventTypeReturned;
+      default: return eventType;
+    }
   }
-
-  void _filterEvents(HistoryEventType? filter) {
-    setState(() {
-      _selectedFilter = filter;
-      if (filter == null) {
-        _filteredEvents = List.from(_allEvents);
-      } else {
-        _filteredEvents =
-            _allEvents.where((event) => event.type == filter).toList();
-      }
-    });
+  // تابع کمکی برای ترجمه وضعیت دارایی از enum AssetStatus
+  String _localizedAssetStatus(AssetStatus status, AppLocalizations l10n) {
+    switch (status) {
+      case AssetStatus.active: return l10n.assetStatusActive;
+      case AssetStatus.inactive: return l10n.assetStatusInactive;
+      case AssetStatus.maintenance: return l10n.assetStatusMaintenance;
+      case AssetStatus.disposed: return l10n.assetStatusDisposed;
+      case AssetStatus.on_loan: return l10n.assetStatusOnLoan;
+      default: return status.name;
+    }
+  }
+  // Helper to get status color based on AssetStatus enum
+  Color _getStatusColor(AssetStatus status) {
+    switch (status) {
+      case AssetStatus.active:
+        return Colors.green.shade400;
+      case AssetStatus.inactive:
+        return Colors.red.shade400;
+      case AssetStatus.maintenance:
+        return Colors.orange.shade400;
+      case AssetStatus.disposed:
+        return Colors.grey;
+      case AssetStatus.on_loan:
+        return Colors.blue.shade400;
+      default:
+        return Colors.grey;
+    }
   }
 
   @override
@@ -121,35 +101,77 @@ class _AssetHistoryPageState extends State<AssetHistoryPage> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => context.pop(),
         ),
+        title: Text(l10n.statusHistoryTitle, style: GoogleFonts.poppins(color: primaryTextColor)),
       ),
-      body: Column(
-        children: [
-          _buildAssetSummaryHeader(context),
-          _buildFilterChips(context),
-          Expanded(
-            child: _filteredEvents.isEmpty
-                ? Center(
-                child: Text('هیچ رویدادی برای این فیلتر یافت نشد.',
-                    style: GoogleFonts.poppins()))
-                : ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 4.w),
-              itemCount: _filteredEvents.length,
-              itemBuilder: (context, index) {
-                return _HistoryTimelineTile(
-                  event: _filteredEvents[index],
-                  isFirst: index == 0,
-                  isLast: index == _filteredEvents.length - 1,
-                ).animate().fadeIn(delay: (100 * index).ms).slideX(
-                    begin: 0.2, duration: 400.ms, curve: Curves.easeOut);
-              },
-            ),
-          ),
-        ],
+      body: BlocConsumer<AssetHistoryBloc, AssetHistoryState>(
+        listener: (context, state) {
+          if (state is AssetHistoryError) {
+            context.showErrorDialog(state.message);
+          }
+        },
+        builder: (context, state) {
+          if (state is AssetHistoryLoading) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(isDarkMode ? Colors.tealAccent.shade100 : Colors.teal.shade600),
+              ),
+            );
+          } else if (state is AssetHistoryLoaded) {
+            final asset = state.asset;
+            final filteredEvents = state.filteredHistory;
+            final selectedFilter = state.currentFilter;
+
+            return Column(
+              children: [
+                _buildAssetSummaryHeader(context, asset), // هدر با اطلاعات واقعی دارایی
+                _buildFilterChips(context, selectedFilter), // فیلترها
+                Expanded(
+                  child: filteredEvents.isEmpty
+                      ? Center(
+                      child: Text(l10n.historyNoEventsFound, // متن وقتی هیچ رویدادی پیدا نشد
+                          style: GoogleFonts.poppins(color: primaryTextColor.withOpacity(0.7))))
+                      : ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 4.w),
+                    itemCount: filteredEvents.length,
+                    itemBuilder: (context, index) {
+                      return _HistoryTimelineTile(
+                        event: filteredEvents[index],
+                        isFirst: index == 0,
+                        isLast: index == filteredEvents.length - 1,
+                        localizedEventType: (type) => _localizedEventType(type, l10n), // پاس دادن تابع ترجمه
+                      ).animate().fadeIn(delay: (100 * index).ms).slideX(
+                          begin: 0.2, duration: 400.ms, curve: Curves.easeOut);
+                    },
+                  ),
+                ),
+              ],
+            );
+          } else if (state is AssetHistoryError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 20.w, color: Colors.red.shade400),
+                  SizedBox(height: 2.h),
+                  Text(state.message, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.red.shade400)),
+                  SizedBox(height: 2.h),
+                  ElevatedButton(
+                    onPressed: () => context.read<AssetHistoryBloc>().add(LoadAssetHistoryEvent(assetId: widget.assetId)),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                    child: Text(l10n.tryAgain, style: const TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
+            );
+          }
+          return const SizedBox.shrink(); // حالت پیش‌فرض
+        },
       ),
     );
   }
 
-  Widget _buildAssetSummaryHeader(BuildContext context) {
+  // Header Summary: نمایش خلاصه دارایی (نام و ID)
+  Widget _buildAssetSummaryHeader(BuildContext context, AssetEntity asset) {
     final isDarkMode = context.watch<ThemeBloc>().state.isDarkMode;
     final cardColor = isDarkMode ? const Color(0xFF2A2B2F) : Colors.white;
     final textColor = isDarkMode ? Colors.white70 : Colors.black54;
@@ -168,16 +190,16 @@ class _AssetHistoryPageState extends State<AssetHistoryPage> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.laptop_mac_outlined,
-              color: Colors.blue, size: 28),
+          // IconAssetCategory یا یک آیکون پیش‌فرض (مانند آنچه در AssetDetailPage داریم)
+          Icon(Icons.laptop_mac_outlined, color: _getStatusColor(asset.status), size: 28),
           SizedBox(width: 3.w),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('لپ‌تاپ Dell XPS 15',
+              Text(asset.name,
                   style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold, fontSize: 13.sp)),
-              Text('LP-00125',
+                      fontWeight: FontWeight.bold, fontSize: 13.sp, color: textColor)),
+              Text(asset.assetId,
                   style: GoogleFonts.poppins(color: textColor, fontSize: 11.sp)),
             ],
           ),
@@ -186,14 +208,21 @@ class _AssetHistoryPageState extends State<AssetHistoryPage> {
     );
   }
 
-  Widget _buildFilterChips(BuildContext context) {
+  // Filter Chips: فیلتر کردن رویدادها بر اساس نوع
+  Widget _buildFilterChips(BuildContext context, AssetEventType? selectedFilter) {
     final l10n = context.l10n;
-    final filters = {
+    final isDarkMode = context.watch<ThemeBloc>().state.isDarkMode;
+    final filterChipBackgroundColor = isDarkMode ? Colors.white.withOpacity(0.08) : Colors.grey.shade200;
+    final filterChipSelectedColor = isDarkMode ? Colors.teal.shade700 : Colors.teal.shade400;
+    final filterChipTextColor = isDarkMode ? Colors.white.withOpacity(0.8) : Colors.black87;
+    final filterChipSelectedTextColor = Colors.white;
+
+    final Map<String, AssetEventType?> filters = {
       l10n.historyFilterAll: null,
-      l10n.historyFilterStatus: HistoryEventType.statusChange,
-      l10n.historyFilterLocation: HistoryEventType.scan,
-      l10n.historyFilterUser: HistoryEventType.custodianChange,
-      l10n.historyFilterMaintenance: HistoryEventType.maintenance,
+      l10n.historyFilterScan: AssetEventType.scanned, // از AssetEventType استفاده می‌کنیم
+      l10n.historyFilterCustodianChange: AssetEventType.assigned, // یا moved، بسته به بک‌اند
+      l10n.historyFilterStatusChange: AssetEventType.registered, // یا statusChanged اگر داشتید
+      l10n.historyFilterMaintenance: AssetEventType.moved, // یا maintenance اگر داشتید
     };
 
     return Padding(
@@ -202,7 +231,7 @@ class _AssetHistoryPageState extends State<AssetHistoryPage> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: filters.entries.map((entry) {
-            final isSelected = _selectedFilter == entry.value;
+            final isSelected = selectedFilter == entry.value;
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: 1.w),
               child: FilterChip(
@@ -211,8 +240,13 @@ class _AssetHistoryPageState extends State<AssetHistoryPage> {
                 onSelected: (selected) {
                   _filterEvents(isSelected ? null : entry.value);
                 },
-                selectedColor: Theme.of(context).primaryColor.withOpacity(0.3),
-                checkmarkColor: Theme.of(context).primaryColor,
+                selectedColor: filterChipSelectedColor,
+                checkmarkColor: filterChipSelectedTextColor,
+                labelStyle: GoogleFonts.poppins(
+                  fontSize: 10.sp,
+                  color: isSelected ? filterChipSelectedTextColor : filterChipTextColor,
+                ),
+                backgroundColor: filterChipBackgroundColor,
               ),
             );
           }).toList(),
@@ -222,15 +256,18 @@ class _AssetHistoryPageState extends State<AssetHistoryPage> {
   }
 }
 
+// _HistoryTimelineTile: ویجت نمایش یک آیتم در تایم‌لاین تاریخچه
 class _HistoryTimelineTile extends StatelessWidget {
-  final HistoryEvent event;
+  final AssetHistoryEntity event; // اکنون از AssetHistoryEntity استفاده می‌کند
   final bool isFirst;
   final bool isLast;
+  final Function(String eventType) localizedEventType; // برای ترجمه نوع رویداد
 
   const _HistoryTimelineTile({
     required this.event,
     this.isFirst = false,
     this.isLast = false,
+    required this.localizedEventType, // باید پاس داده شود
   });
 
   @override
@@ -251,8 +288,8 @@ class _HistoryTimelineTile extends StatelessWidget {
                 Expanded(child: Container(width: 2, color: lineColor)),
               CircleAvatar(
                   radius: 2.2.w,
-                  backgroundColor: event.color,
-                  child: Icon(event.icon, size: 3.w, color: Colors.white)),
+                  backgroundColor: event.eventColor, // از Entity می‌آید
+                  child: Icon(event.eventIcon, size: 3.w, color: Colors.white)), // از Entity می‌آید
               if (!isLast)
                 Expanded(child: Container(width: 2, color: lineColor)),
             ],
@@ -265,17 +302,17 @@ class _HistoryTimelineTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    event.title,
+                    '${localizedEventType(event.eventType)}: ${event.location ?? 'N/A'}', // از تابع پاس داده شده استفاده می‌کند
                     style: GoogleFonts.poppins(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
                         color: primaryTextColor),
                   ),
-                  if (event.subtitle != null)
+                  if (event.details != null) // اگر جزئیات وجود دارد
                     Padding(
                       padding: EdgeInsets.only(top: 0.5.h),
                       child: Text(
-                        event.subtitle!,
+                        event.details!,
                         style: GoogleFonts.poppins(
                             fontSize: 10.sp, color: secondaryTextColor),
                       ),

@@ -1,4 +1,9 @@
+// lib/feature/assets_loan_management/presentation/pages/scan_page.dart
+
+import 'dart:async';
+import 'dart:math';
 import 'package:assetsrfid/core/utils/context_extensions.dart';
+import 'package:assetsrfid/feature/rfid/presentation/pages/rfid_scanner_page.dart';
 import 'package:assetsrfid/feature/theme/bloc/theme_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -6,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:sizer/sizer.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 enum ScanMode { rfid, qrCode }
 
@@ -19,6 +25,13 @@ class ScanPage extends StatefulWidget {
 
 class _ScanPageState extends State<ScanPage> with TickerProviderStateMixin {
   late AnimationController _animationController;
+  Timer? _scanSimulatorTimer; // Fix: اضافه شدن Timer
+  bool _isScanning = false; // Fix: وضعیت اسکن
+  int _mockAssetIndex = 0; // Fix: برای شبیه‌سازی اسکن‌های متوالی
+  final List<ScannedRfidItem> _scannedItems = []; // Fix: برای آیتم‌های اسکن شده
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>(); // Fix: برای AnimatedList
+  final Random _random = Random(); // Fix: برای مقادیر تصادفی در شبیه‌سازی
+
 
   @override
   void initState() {
@@ -28,15 +41,16 @@ class _ScanPageState extends State<ScanPage> with TickerProviderStateMixin {
       duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
 
-    _startScanSimulation();
+    _startScanSimulation(); // از اینجا شروع می‌شود
   }
 
   void _startScanSimulation() {
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () { // 3 ثانیه برای شبیه‌سازی اسکن
       if (mounted) {
+        // Fix: Return only the raw ID/RFID tag, not formatted string
         final result = widget.mode == ScanMode.rfid
-            ? 'لپ‌تاپ Dell XPS 15 (RFID-123)'
-            : 'آقای محمدی (USER-456)';
+            ? 'RFID-ELC-001' // یک RFID تگ واقعی
+            : 'user_id:123'; // یک User ID واقعی (مثلاً فرمت 'user_id:123')
         context.pop(result);
       }
     });
@@ -45,8 +59,29 @@ class _ScanPageState extends State<ScanPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _animationController.dispose();
+    _scanSimulatorTimer?.cancel(); // Fix: Dispose timer
     super.dispose();
   }
+
+
+  // این متدها از کد اصلی AssetScanPage کپی شده‌اند، ممکن است برای ScanPage شما کامل نباشند
+  // و باید با نیازهای واقعی شبیه‌سازی یا اتصال به سخت‌افزار ادغام شوند.
+  // فعلاً برای حل مشکل compile و پیشروی باقی می‌مانند.
+  void _toggleScan() { /* ... */ }
+  void _startMockScan() { /* ... */ }
+  void _stopScan() { /* ... */ }
+  void _addScannedItemToList(ScannedRfidItem item) { /* ... */ }
+  void _showItemDetails(BuildContext context, ScannedRfidItem item) { /* ... */ }
+  //Widget _buildDetailRow(String label, String value, Color labelColor, Color valueColor, bool isDarkMode, {bool isDetailEntry = false}) { /* ... */ }
+ // List<Map<String, dynamic>> _getMockAssetPool(BuildContext context) { /* ... */ }
+  void _performSearch(String query) async { /* ... */ }
+  void _clearSearch() { /* ... */ }
+  //Widget _buildResultsArea(Color emptyStateIconColor, Color emptyStateTextColor) { /* ... */ }
+  // این کلاس‌ها نیز احتمالا نیاز به تعریف یا حذف دارند
+  // class ScannedRfidItem { /* ... */ }
+  // class SearchResultItem { /* ... */ }
+  // class _SearchResultItemCard { /* ... */ }
+
 
   @override
   Widget build(BuildContext context) {
