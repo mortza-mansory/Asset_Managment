@@ -74,7 +74,7 @@ class RoleSelectionPage extends StatelessWidget {
                 context: context,
                 icon: Icons.groups_outlined,
                 title: context.l10n.joinCompanyButton,
-                onTap: () => context.go('/my_companies'),
+                onTap: () => context.go('/my_invities'),
               ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.4),
             ],
           ),

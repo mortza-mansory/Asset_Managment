@@ -48,6 +48,7 @@ class TokenResponseModel {
   TokenResponseModel({required this.accessToken});
 
   factory TokenResponseModel.fromJson(Map<String, dynamic> json) {
+    print(json['access_token']?.toString());
     return TokenResponseModel(
       accessToken: json['access_token']?.toString() ?? '',
     );

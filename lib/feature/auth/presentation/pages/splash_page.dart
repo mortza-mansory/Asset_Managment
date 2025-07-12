@@ -65,7 +65,7 @@ class _SplashPageState extends State<SplashPage> {
               if (activeCompany != null) {
                 context.go('/home');
               } else {
-                context.go('/switch_company');
+                context.go('/role_selection');
               }
             } else {
               context.go('/modal_start');

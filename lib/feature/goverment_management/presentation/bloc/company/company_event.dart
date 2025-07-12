@@ -26,10 +26,14 @@ class SwitchCompany extends CompanyEvent {
   final String companyId;
   final String companyName;
   final String rawRole;
+  final bool canManageGovernmentAdmins;
+  final bool canManageOperators;
 
   SwitchCompany({
     required this.companyId,
     required this.companyName,
     required this.rawRole,
+    this.canManageGovernmentAdmins = false,
+    this.canManageOperators = false,
   });
 }

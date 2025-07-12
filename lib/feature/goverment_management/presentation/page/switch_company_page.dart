@@ -12,6 +12,10 @@ import 'package:assetsrfid/feature/goverment_management/presentation/bloc/compan
 import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company/company_event.dart';
 import 'package:assetsrfid/feature/goverment_management/presentation/bloc/company/company_state.dart';
 import 'package:assetsrfid/feature/goverment_management/data/models/company_model.dart';
+import 'package:get_it/get_it.dart'; // Add this import
+
+// Ensure getIt is accessible, assuming it's initialized via setupDependencies somewhere
+// final getIt = GetIt.instance; // Uncomment if not globally accessible
 
 class CompanyMembership {
   final String id;
@@ -21,6 +25,8 @@ class CompanyMembership {
   final IconData icon;
   final String? address;
   final String? industry;
+  final bool canManageGovernmentAdmins;
+  final bool canManageOperators;
 
   CompanyMembership({
     required this.id,
@@ -30,9 +36,10 @@ class CompanyMembership {
     required this.icon,
     this.address,
     this.industry,
+    this.canManageGovernmentAdmins = false,
+    this.canManageOperators = false,
   });
 }
-
 
 class SwitchCompanyPage extends StatefulWidget {
   const SwitchCompanyPage({super.key});
@@ -55,14 +62,24 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
     context.read<CompanyBloc>().add(FetchCompanies());
   }
 
-  void _switchCompany(String companyId, String companyName, String role) async {
+  void _switchCompany(String companyId, String companyName, String role, bool canManageGovernmentAdmins, bool canManageOperators) async {
     final sessionService = getIt<SessionService>();
     final permissionService = getIt<PermissionService>();
 
-    final activeCompany = ActiveCompany(id: int.parse(companyId), name: companyName, role: role);
+    final activeCompany = ActiveCompany(
+      id: int.parse(companyId),
+      name: companyName,
+      role: role,
+      canManageGovernmentAdmins: canManageGovernmentAdmins,
+      canManageOperators: canManageOperators,
+    );
     await sessionService.saveActiveCompany(activeCompany);
 
-    permissionService.updateRulesForRole(role);
+    permissionService.updateRulesForRole(
+        role,
+        canManageGovernmentAdmins: canManageGovernmentAdmins,
+        canManageOperators: canManageOperators
+    );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -70,7 +87,7 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
         backgroundColor: Colors.green,
       ),
     );
-    context.go('/splash');
+    context.go('/splash'); // Re-initiate app to load new permissions
   }
 
   @override
@@ -85,11 +102,11 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
       appBar: AppBar(
         title: Text(l10n.switchCompanyPageTitle, style: GoogleFonts.poppins()),
         backgroundColor: scaffoldBackgroundColor,
-     //   foregroundColor: primaryTextColor,
+        //   foregroundColor: primaryTextColor,
         elevation: 1,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.pop(),
+          onPressed: () =>  context.go('/splash'),
         ),
         actions: [
           IconButton(
@@ -146,15 +163,24 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
             if (state is CompanyLoading) {
               return const Center(child: CircularProgressIndicator());
             } else if (state is CompaniesLoaded) {
-              final memberships = state.companies.map((company) => CompanyMembership(
-                id: company.id.toString(),
-                companyName: company.name,
-                userRole: _mapRoleToL10n(company.role, l10n),
-                icon: _getIconForRole(company.role),
-                address: company.address,
-                industry: company.industry,
-                rawRole: company.role,
-              )).toList();
+              final memberships = state.companies.map((company) {
+                // Ensure company.name is not null before passing
+                final String companyName = company.name;
+                final String userRole = _mapRoleToL10n(company.role, l10n); // Make sure this mapping is correct
+                final IconData roleIcon = _getIconForRole(company.role); // Make sure this mapping is correct
+
+                return CompanyMembership(
+                  id: company.id.toString(),
+                  companyName: companyName,
+                  userRole: userRole,
+                  icon: roleIcon,
+                  address: company.address,
+                  industry: company.industry,
+                  rawRole: company.role ?? 'O', // Provide a default if null
+                  canManageGovernmentAdmins: company.canManageGovernmentAdmins ?? false,
+                  canManageOperators: company.canManageOperators ?? false,
+                );
+              }).toList();
 
               if (memberships.isEmpty) {
                 return Center(
@@ -203,8 +229,11 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
                         companyId: membership.id,
                         companyName: membership.companyName,
                         rawRole: membership.rawRole,
+                        canManageGovernmentAdmins: membership.canManageGovernmentAdmins,
+                        canManageOperators: membership.canManageOperators,
                       ),
                     ),
+
                     onDelete: () {
                       context.read<CompanyBloc>().add(DeleteCompany(companyId: int.parse(membership.id)));
                     },
@@ -257,9 +286,9 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
     switch (role) {
       case 'A1':
         return l10n.companyRoleOwner;
-      case 'S':
+      case 'A2': // Assuming S role maps to A2 for display based on prior context
         return l10n.companyRoleAdmin;
-      case 'Operator':
+      case 'O': // Assuming Operator role maps to O
         return l10n.companyRoleOperator;
       default:
         return l10n.companyRoleMember;
@@ -270,9 +299,9 @@ class _SwitchCompanyPageState extends State<SwitchCompanyPage> {
     switch (role) {
       case 'A1':
         return Icons.business;
-      case 'S':
+      case 'A2': // Assuming S role maps to A2 for display based on prior context
         return Icons.local_fire_department_outlined;
-      case 'Operator':
+      case 'O': // Assuming Operator role maps to O
         return Icons.build_outlined;
       default:
         return Icons.computer_outlined;
