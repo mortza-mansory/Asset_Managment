@@ -140,7 +140,7 @@ class _RfidScanPageState extends State<RfidScanPage>
       if (mounted) {
         final mockItemData = mockAssetPool[_mockAssetIndex];
         final newItem = ScannedRfidItem(
-          id: 'RFID_TAG_${DateTime.now().millisecondsSinceEpoch}_$_mockAssetIndex',
+          id: 'rfid_tag_${DateTime.now().millisecondsSinceEpoch}_$_mockAssetIndex',
           name: '${mockItemData['name']}',
           type: mockItemData['type'],
           iconData: mockItemData['icon'],
