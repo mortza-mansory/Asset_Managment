@@ -25,6 +25,7 @@ dependencies:
   latlong2:
   fl_chart: ^0.69.0
   flutter_staggered_animations:
+  equatable:
   flutter_localizations:
     sdk: flutter
   auto_size_text:
@@ -34,7 +35,10 @@ dependencies:
   flutter_speed_dial:
   dartz:
   flutter_otp_text_field:
-dev_dependencies:
+  get_it:
+  jwt_decoder:
+  open_filex:
+  file_picker: ^8.0.7
   flutter_test:
     sdk: flutter
 
